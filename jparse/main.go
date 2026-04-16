@@ -28,6 +28,9 @@ func (p *Parser) advance() {
 }
 
 func (p *Parser) peek() lexer.Token {
+	if p.pos >= len(p.tokens) {
+		return lexer.Token{Kind: lexer.EOF}
+	}
 	return p.tokens[p.pos]
 }
 
