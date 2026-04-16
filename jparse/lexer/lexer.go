@@ -124,5 +124,3 @@ func Tokenize(reader *bufio.Reader) ([]Token, error) {
 	tokens = append(tokens, newToken(EOF, ""))
 	return tokens, nil
 }
-
-func parseUnicodeEscape()
