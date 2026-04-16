@@ -8,6 +8,9 @@ const (
 	EOF TokenKind = iota
 	OPEN_BRACE
 	CLOSE_BRACE
+	STRING
+	COLON
+	COMMA
 )
 
 type Token struct {
@@ -31,6 +34,12 @@ func (tk TokenKind) String() string {
 		return "OPEN_BRACE"
 	case CLOSE_BRACE:
 		return "CLOSE_BRACE"
+	case STRING:
+		return "STRING"
+	case COLON:
+		return "COLON"
+	case COMMA:
+		return "COMMA"
 	default:
 		return "UNKNOWN"
 	}
