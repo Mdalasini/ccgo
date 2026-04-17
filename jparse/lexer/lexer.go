@@ -176,6 +176,12 @@ func Tokenize(reader *bufio.Reader) ([]Token, error) {
 		case peek[0] == ',':
 			tokens = append(tokens, newToken(COMMA, ","))
 			l.reader.ReadByte()
+		case peek[0] == '[':
+			tokens = append(tokens, newToken(OPEN_BRACKET, "["))
+			l.reader.ReadByte()
+		case peek[0] == ']':
+			tokens = append(tokens, newToken(CLOSE_BRACKET, "]"))
+			l.reader.ReadByte()
 		case unicode.IsDigit(rune(peek[0])):
 			value, err := l.consumeNumber()
 			if err != nil {

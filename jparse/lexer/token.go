@@ -14,6 +14,8 @@ const (
 	BOOLEAN
 	NULL
 	NUMBER
+	OPEN_BRACKET
+	CLOSE_BRACKET
 )
 
 type Token struct {
@@ -49,6 +51,10 @@ func (tk TokenKind) String() string {
 		return "NULL"
 	case NUMBER:
 		return "NUMBER"
+	case OPEN_BRACKET:
+		return "OPEN_BRACKET"
+	case CLOSE_BRACKET:
+		return "CLOSE_BRACKET"
 	default:
 		return "UNKNOWN"
 	}

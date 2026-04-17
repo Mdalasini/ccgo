@@ -130,3 +130,37 @@ func TestTokenizeNumber(t *testing.T) {
 		}
 	}
 }
+
+func TestTokenizeArray(t *testing.T) {
+	input := "{\"foo\": [1, 2, 3]}"
+	reader := bufio.NewReader(strings.NewReader(input))
+	tokens, err := Tokenize(reader)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	expected := []Token{
+		{Kind: OPEN_BRACE, Value: "{"},
+		{Kind: STRING, Value: "foo"},
+		{Kind: COLON, Value: ":"},
+		{Kind: OPEN_BRACKET, Value: "["},
+		{Kind: NUMBER, Value: "1"},
+		{Kind: COMMA, Value: ","},
+		{Kind: NUMBER, Value: "2"},
+		{Kind: COMMA, Value: ","},
+		{Kind: NUMBER, Value: "3"},
+		{Kind: CLOSE_BRACKET, Value: "]"},
+		{Kind: CLOSE_BRACE, Value: "}"},
+		{Kind: EOF, Value: ""},
+	}
+
+	if len(tokens) != len(expected) {
+		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
+	}
+
+	for i, tok := range tokens {
+		if tok != expected[i] {
+			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
+		}
+	}
+}
