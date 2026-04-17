@@ -75,6 +75,12 @@ func (p *Parser) parseValue() error {
 	switch p.peek().Kind {
 	case lexer.STRING:
 		p.advance()
+	case lexer.NUMBER:
+		p.advance()
+	case lexer.BOOLEAN:
+		p.advance()
+	case lexer.NULL:
+		p.advance()
 	default:
 		return fmt.Errorf("unexpected token %s", p.peek().Kind.String())
 	}
