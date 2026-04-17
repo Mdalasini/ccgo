@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type Lexer struct {
@@ -23,10 +24,11 @@ func (l *Lexer) skipWhitespace() {
 		if err != nil {
 			break
 		}
-		if peek[0] != ' ' && peek[0] != '\t' && peek[0] != '\n' && peek[0] != '\r' {
-			break
+		if unicode.IsSpace(rune(peek[0])) {
+			l.reader.ReadByte()
+			continue
 		}
-		l.reader.ReadByte()
+		break
 	}
 }
 
