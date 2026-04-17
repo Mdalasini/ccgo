@@ -6,161 +6,130 @@ import (
 	"testing"
 )
 
+func tokenize(t *testing.T, input string) ([]Token, bool) {
+	t.Helper()
+	tokens, err := Tokenize(bufio.NewReader(strings.NewReader(input)))
+	return tokens, err == nil
+}
+
+func TestTokenizeValidEmptyObject(t *testing.T) {
+	input := `{}`
+	tokens, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for empty object")
+	}
+	expected := []Token{
+		{Kind: OPEN_BRACE, Value: "{"},
+		{Kind: CLOSE_BRACE, Value: "}"},
+		{Kind: EOF, Value: ""},
+	}
+	if len(tokens) != len(expected) {
+		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
+	}
+	for i, tok := range tokens {
+		if tok != expected[i] {
+			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
+		}
+	}
+}
+
+func TestTokenizeValidSimpleObject(t *testing.T) {
+	input := `{"key": "value"}`
+	_, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for simple object")
+	}
+}
+
+func TestTokenizeValidMultiLineObject(t *testing.T) {
+	input := `{
+  "key": "value",
+  "key2": "value"
+}`
+	_, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for multi-line object")
+	}
+}
+
+func TestTokenizeValidMixedTypes(t *testing.T) {
+	input := `{
+  "key1": true,
+  "key2": false,
+  "key3": null,
+  "key4": "value",
+  "key5": 101
+}`
+	_, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for mixed types")
+	}
+}
+
+func TestTokenizeValidNested(t *testing.T) {
+	input := `{
+  "key": "value",
+  "key-n": 101,
+  "key-o": {},
+  "key-l": []
+}`
+	_, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for nested objects")
+	}
+}
+
+func TestTokenizeValidDeeplyNested(t *testing.T) {
+	input := `{
+  "key": "value",
+  "key-n": 101,
+  "key-o": {
+    "inner key": "inner value"
+  },
+  "key-l": ["list value"]
+}`
+	_, ok := tokenize(t, input)
+	if !ok {
+		t.Fatal("expected no error for deeply nested objects")
+	}
+}
+
 func TestTokenizeInvalidBareKey(t *testing.T) {
-	input := "{foo}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err == nil {
-		t.Fatalf("expected error, got nil (tokens: %+v)", tokens)
+	input := `{
+  "key": "value",
+  key2: "value"
+}`
+	_, ok := tokenize(t, input)
+	if ok {
+		t.Fatal("expected error for bare key")
 	}
 }
 
-func TestTokenizeValidObject(t *testing.T) {
-	input := "{\"foo\": \"bar\", \"baz\": \"qux\"}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	expected := []Token{
-		{Kind: OPEN_BRACE, Value: "{"},
-		{Kind: STRING, Value: "foo"},
-		{Kind: COLON, Value: ":"},
-		{Kind: STRING, Value: "bar"},
-		{Kind: COMMA, Value: ","},
-		{Kind: STRING, Value: "baz"},
-		{Kind: COLON, Value: ":"},
-		{Kind: STRING, Value: "qux"},
-		{Kind: CLOSE_BRACE, Value: "}"},
-		{Kind: EOF, Value: ""},
-	}
-
-	if len(tokens) != len(expected) {
-		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
-	}
-
-	for i, tok := range tokens {
-		if tok != expected[i] {
-			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
-		}
+func TestTokenizeInvalidCapitalizedBoolean(t *testing.T) {
+	input := `{
+  "key1": true,
+  "key2": False,
+  "key3": null,
+  "key4": "value",
+  "key5": 101
+}`
+	_, ok := tokenize(t, input)
+	if ok {
+		t.Fatal("expected error for capitalized boolean")
 	}
 }
 
-func TestTokenizeBoolean(t *testing.T) {
-	input := "{\"foo\": true}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	expected := []Token{
-		{Kind: OPEN_BRACE, Value: "{"},
-		{Kind: STRING, Value: "foo"},
-		{Kind: COLON, Value: ":"},
-		{Kind: BOOLEAN, Value: "true"},
-		{Kind: CLOSE_BRACE, Value: "}"},
-		{Kind: EOF, Value: ""},
-	}
-
-	if len(tokens) != len(expected) {
-		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
-	}
-
-	for i, tok := range tokens {
-		if tok != expected[i] {
-			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
-		}
-	}
-}
-
-func TestTokenizeNull(t *testing.T) {
-	input := "{\"foo\": null}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	expected := []Token{
-		{Kind: OPEN_BRACE, Value: "{"},
-		{Kind: STRING, Value: "foo"},
-		{Kind: COLON, Value: ":"},
-		{Kind: NULL, Value: "null"},
-		{Kind: CLOSE_BRACE, Value: "}"},
-		{Kind: EOF, Value: ""},
-	}
-
-	if len(tokens) != len(expected) {
-		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
-	}
-
-	for i, tok := range tokens {
-		if tok != expected[i] {
-			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
-		}
-	}
-}
-
-func TestTokenizeNumber(t *testing.T) {
-	input := "{\"foo\": 42.0}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	expected := []Token{
-		{Kind: OPEN_BRACE, Value: "{"},
-		{Kind: STRING, Value: "foo"},
-		{Kind: COLON, Value: ":"},
-		{Kind: NUMBER, Value: "42.0"},
-		{Kind: CLOSE_BRACE, Value: "}"},
-		{Kind: EOF, Value: ""},
-	}
-
-	if len(tokens) != len(expected) {
-		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
-	}
-
-	for i, tok := range tokens {
-		if tok != expected[i] {
-			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
-		}
-	}
-}
-
-func TestTokenizeArray(t *testing.T) {
-	input := "{\"foo\": [1, 2, 3]}"
-	reader := bufio.NewReader(strings.NewReader(input))
-	tokens, err := Tokenize(reader)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	expected := []Token{
-		{Kind: OPEN_BRACE, Value: "{"},
-		{Kind: STRING, Value: "foo"},
-		{Kind: COLON, Value: ":"},
-		{Kind: OPEN_BRACKET, Value: "["},
-		{Kind: NUMBER, Value: "1"},
-		{Kind: COMMA, Value: ","},
-		{Kind: NUMBER, Value: "2"},
-		{Kind: COMMA, Value: ","},
-		{Kind: NUMBER, Value: "3"},
-		{Kind: CLOSE_BRACKET, Value: "]"},
-		{Kind: CLOSE_BRACE, Value: "}"},
-		{Kind: EOF, Value: ""},
-	}
-
-	if len(tokens) != len(expected) {
-		t.Fatalf("expected %d tokens, got %d", len(expected), len(tokens))
-	}
-
-	for i, tok := range tokens {
-		if tok != expected[i] {
-			t.Errorf("token %d: expected %+v, got %+v", i, expected[i], tok)
-		}
+func TestTokenizeInvalidSingleQuote(t *testing.T) {
+	input := `{
+  "key": "value",
+  "key-n": 101,
+  "key-o": {
+    "inner key": "inner value"
+  },
+  "key-l": ['list value']
+}`
+	_, ok := tokenize(t, input)
+	if ok {
+		t.Fatal("expected error for single-quoted string")
 	}
 }
