@@ -11,6 +11,9 @@ const (
 	STRING
 	COLON
 	COMMA
+	BOOLEAN
+	NULL
+	NUMBER
 )
 
 type Token struct {
@@ -40,6 +43,12 @@ func (tk TokenKind) String() string {
 		return "COLON"
 	case COMMA:
 		return "COMMA"
+	case BOOLEAN:
+		return "BOOLEAN"
+	case NULL:
+		return "NULL"
+	case NUMBER:
+		return "NUMBER"
 	default:
 		return "UNKNOWN"
 	}
