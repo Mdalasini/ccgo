@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"bufio"
+	"strings"
 	"testing"
 
 	"github.com/mdalasini/ccgo/jparse/lexer"
@@ -71,5 +73,13 @@ func TestParseInvalidKey(t *testing.T) {
 
 	if err := Parse(tokens); err == nil {
 		t.Fatal("expected error for invalid key, got nil")
+	}
+}
+
+func TestParseArray(t *testing.T) {
+	input := "{\"foo\": [1, 2, 3]}"
+	tokens, _ := lexer.Tokenize(bufio.NewReader(strings.NewReader(input)))
+	if err := Parse(tokens); err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
 }

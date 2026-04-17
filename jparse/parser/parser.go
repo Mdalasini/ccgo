@@ -29,6 +29,41 @@ func (p *Parser) expect(kind lexer.TokenKind) error {
 	return nil
 }
 
+func (p *Parser) parseArray() error {
+	if err := p.expect(lexer.OPEN_BRACKET); err != nil {
+		return err
+	}
+	p.advance()
+
+	if p.peek().Kind == lexer.CLOSE_BRACKET {
+		p.advance()
+		return nil
+	}
+	if err := p.parseObject(); err != nil {
+		return err
+	}
+
+	switch p.peek().Kind {
+	case lexer.COMMA:
+		for p.peek().Kind == lexer.COMMA {
+			p.advance()
+			if err := p.parseObject(); err != nil {
+				return err
+			}
+		}
+		if err := p.expect(lexer.CLOSE_BRACKET); err != nil {
+			return err
+		}
+		p.advance()
+		return nil
+	case lexer.CLOSE_BRACKET:
+		p.advance()
+		return nil
+	default:
+		return fmt.Errorf("unexpected token %s", p.peek().Kind.String())
+	}
+}
+
 func (p *Parser) parseJson() error {
 	if err := p.expect(lexer.OPEN_BRACE); err != nil {
 		return err
@@ -55,7 +90,7 @@ func (p *Parser) parsePair() error {
 		return err
 	}
 	p.advance()
-	if err := p.parseValue(); err != nil {
+	if err := p.parseObject(); err != nil {
 		return err
 	}
 
@@ -71,7 +106,7 @@ func (p *Parser) parsePair() error {
 	}
 }
 
-func (p *Parser) parseValue() error {
+func (p *Parser) parseObject() error {
 	switch p.peek().Kind {
 	case lexer.STRING:
 		p.advance()
@@ -81,6 +116,14 @@ func (p *Parser) parseValue() error {
 		p.advance()
 	case lexer.NULL:
 		p.advance()
+	case lexer.OPEN_BRACE:
+		if err := p.parseJson(); err != nil {
+			return err
+		}
+	case lexer.OPEN_BRACKET:
+		if err := p.parseArray(); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unexpected token %s", p.peek().Kind.String())
 	}
@@ -96,11 +139,5 @@ func newParser(tokens []lexer.Token) *Parser {
 
 func Parse(tokens []lexer.Token) error {
 	p := newParser(tokens)
-	if err := p.parseJson(); err != nil {
-		return err
-	}
-	if err := p.expect(lexer.EOF); err != nil {
-		return err
-	}
-	return nil
+	return p.parseObject()
 }
