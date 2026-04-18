@@ -21,14 +21,14 @@ func NewLexer(reader *bufio.Reader) *Lexer {
 
 func (l *Lexer) skipWhitespace() {
 	for {
-		peek, err := l.reader.Peek(1)
+		r, _, err := l.reader.ReadRune()
 		if err != nil {
 			break
 		}
-		if unicode.IsSpace(rune(peek[0])) {
-			l.reader.ReadByte()
+		if unicode.IsSpace(r) {
 			continue
 		}
+		l.reader.UnreadRune()
 		break
 	}
 }
