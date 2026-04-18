@@ -39,7 +39,7 @@ func (p *Parser) parseArray() error {
 		p.advance()
 		return nil
 	}
-	if err := p.parseObject(); err != nil {
+	if err := p.parseValue(); err != nil {
 		return err
 	}
 
@@ -47,7 +47,7 @@ func (p *Parser) parseArray() error {
 	case lexer.COMMA:
 		for p.peek().Kind == lexer.COMMA {
 			p.advance()
-			if err := p.parseObject(); err != nil {
+			if err := p.parseValue(); err != nil {
 				return err
 			}
 		}
@@ -90,7 +90,7 @@ func (p *Parser) parsePair() error {
 		return err
 	}
 	p.advance()
-	if err := p.parseObject(); err != nil {
+	if err := p.parseValue(); err != nil {
 		return err
 	}
 
@@ -106,7 +106,7 @@ func (p *Parser) parsePair() error {
 	}
 }
 
-func (p *Parser) parseObject() error {
+func (p *Parser) parseValue() error {
 	switch p.peek().Kind {
 	case lexer.STRING:
 		p.advance()
@@ -139,5 +139,5 @@ func newParser(tokens []lexer.Token) *Parser {
 
 func Parse(tokens []lexer.Token) error {
 	p := newParser(tokens)
-	return p.parseObject()
+	return p.parseValue()
 }
