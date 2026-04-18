@@ -58,7 +58,8 @@ func TestTokenizeValidMixedTypes(t *testing.T) {
   "key2": false,
   "key3": null,
   "key4": "value",
-  "key5": 101
+  "key5": 101,
+  "key6": -101
 }`
 	_, ok := tokenize(t, input)
 	if !ok {

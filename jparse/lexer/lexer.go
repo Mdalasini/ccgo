@@ -33,8 +33,12 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
-func (l *Lexer) consumeNumber() (string, error) {
+func (l *Lexer) consumeNumber(isNegative bool) (string, error) {
 	var value strings.Builder
+	if isNegative {
+		value.WriteByte('-')
+	}
+
 	inFloat := false
 	for {
 		peek, err := l.reader.Peek(1)
@@ -182,8 +186,24 @@ func Tokenize(reader *bufio.Reader) ([]Token, error) {
 		case peek[0] == ']':
 			tokens = append(tokens, newToken(CLOSE_BRACKET, "]"))
 			l.reader.ReadByte()
+		case peek[0] == '-':
+			l.reader.ReadByte()
+			peek, err := l.reader.Peek(1)
+			if err != nil {
+				return nil, fmt.Errorf("minus must be followed by a digit")
+			}
+			if !unicode.IsDigit(rune(peek[0])) {
+				return nil, fmt.Errorf("minus must be followed by a digit")
+			}
+			isNegative := true
+			value, err := l.consumeNumber(isNegative)
+			if err != nil {
+				return nil, err
+			}
+			tokens = append(tokens, newToken(NUMBER, value))
 		case unicode.IsDigit(rune(peek[0])):
-			value, err := l.consumeNumber()
+			isNegative := false
+			value, err := l.consumeNumber(isNegative)
 			if err != nil {
 				return nil, err
 			}

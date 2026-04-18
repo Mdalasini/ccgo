@@ -47,7 +47,8 @@ func TestParseValidMixedTypes(t *testing.T) {
   "key2": false,
   "key3": null,
   "key4": "value",
-  "key5": 101
+  "key5": 101,
+  "key6": -101
 }`)
 	if err := Parse(tokens); err != nil {
 		t.Fatalf("expected no error, got %v", err)
