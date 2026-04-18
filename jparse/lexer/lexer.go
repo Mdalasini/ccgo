@@ -131,24 +131,24 @@ func (l *Lexer) consumeString() (string, error) {
 	}
 }
 
-func (l *Lexer) peekUntil(stoppers []byte, includeSpace bool) []byte {
-	for size := 1; ; size++ {
-		peek, err := l.reader.Peek(size)
+func (l *Lexer) readUntilDelimFunc(isDelimFunc func(byte) bool) ([]byte, error) {
+	var result bytes.Buffer
+
+	for {
+		b, err := l.reader.ReadByte()
 		if err != nil {
-			// ran out of bytes before finding a stopper
-			return peek
-		}
-		// check if the last byte is a stopper
-		last := peek[size-1]
-		if includeSpace {
-			if unicode.IsSpace(rune(last)) || bytes.Contains(stoppers, []byte{last}) {
-				return peek[:size-1] // don't include the stopper in the result
+			if errors.Is(io.EOF, err) && result.Len() > 0 {
+				return result.Bytes(), nil
 			}
-		} else {
-			if bytes.Contains(stoppers, []byte{last}) {
-				return peek[:size-1] // don't include the stopper in the result
-			}
+			return result.Bytes(), err
 		}
+
+		if isDelimFunc(b) {
+			l.reader.UnreadByte() // place back delimiter
+			return result.Bytes(), nil
+		}
+
+		result.WriteByte(b)
 	}
 }
 
@@ -209,24 +209,20 @@ func Tokenize(reader *bufio.Reader) ([]Token, error) {
 			}
 			tokens = append(tokens, newToken(NUMBER, value))
 		default:
-			stoppers := []byte{',', '}', ':'}
-			rem := l.peekUntil(stoppers, true)
+			isDelim := func(b byte) bool {
+				return unicode.IsSpace(rune(b)) || bytes.Contains([]byte{',', '}', ':'}, []byte{b})
+			}
+			rem, err := l.readUntilDelimFunc(isDelim)
+			if err != nil {
+				return nil, err
+			}
 			switch {
 			case string(rem) == "true":
 				tokens = append(tokens, newToken(BOOLEAN, "true"))
-				for range len(rem) {
-					l.reader.ReadByte()
-				}
 			case string(rem) == "false":
 				tokens = append(tokens, newToken(BOOLEAN, "false"))
-				for range len(rem) {
-					l.reader.ReadByte()
-				}
 			case string(rem) == "null":
 				tokens = append(tokens, newToken(NULL, "null"))
-				for range len(rem) {
-					l.reader.ReadByte()
-				}
 			default:
 				return nil, fmt.Errorf("string value must be double-quoted: %s", rem)
 			}
