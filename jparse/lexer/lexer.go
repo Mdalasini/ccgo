@@ -74,8 +74,19 @@ func (l *Lexer) consumeNumber(isNegative bool) (string, error) {
 }
 
 func (l *Lexer) consumeString() (string, error) {
-	l.reader.ReadByte()
+	l.reader.ReadByte() // move past opening quotes
 	var value strings.Builder
+
+	var escapeChars = map[byte]rune{
+		'b':  '\b',
+		'f':  '\f',
+		'n':  '\n',
+		'r':  '\r',
+		't':  '\t',
+		'"':  '"',
+		'\\': '\\',
+		'/':  '/',
+	}
 	for {
 		peek, err := l.reader.Peek(1)
 		if err != nil {
@@ -118,9 +129,9 @@ func (l *Lexer) consumeString() (string, error) {
 				for range 4 {
 					l.reader.ReadByte()
 				}
-			case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
-				value.WriteString(string(peek[0]))
-				l.reader.ReadByte()
+			case 'b', 'f', 'n', 'r', 't', '"', '\\', '/':
+				r, _ := escapeChars[peek[0]]
+				value.WriteRune(r)
 			default:
 				return "", fmt.Errorf("invalid escape character: %c", peek[0])
 			}
