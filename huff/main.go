@@ -26,6 +26,4 @@ func main() {
 		log.Fatalf("unable to open %v: %v", filepath, err)
 	}
 	defer file.Close()
-
-	countCharFrequencies(file)
 }
