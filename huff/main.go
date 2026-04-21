@@ -17,6 +17,10 @@ func countCharFrequencies(file *os.File) map[rune]int {
 		frequencies[r]++
 	}
 
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("error reading file: %v", err)
+	}
+
 	return frequencies
 }
 
