@@ -78,19 +78,32 @@ func insertSorted(nodes []HuffNode, node HuffNode) []HuffNode {
 	return nodes
 }
 
-func buildTree(nodes []HuffNode) HuffNode {
+func buildTree(nodes []HuffNode) (HuffBranch, error) {
 	if len(nodes) == 0 {
-		return nil
+		return HuffBranch{}, fmt.Errorf("cannot build tree from empty node list")
 	}
+
+	if len(nodes) == 1 {
+		if leaf, ok := nodes[0].(HuffLeaf); ok {
+			return HuffBranch{leftNode: leaf, freq: leaf.freq}, nil
+		}
+		return nodes[0].(HuffBranch), nil
+	}
+
 	sortNodesByFreq(nodes)
 	for len(nodes) > 1 {
 		left := nodes[0]
 		right := nodes[1]
 		merged := mergeNodes(left, right) // left should have lower freq
 		nodes = nodes[2:]
-		nodes = insertSorted(nodes, merged)
+		nodes = insertSorted(nodes, merged) // maintains sort
 	}
-	return nodes[0]
+	branch, ok := nodes[0].(HuffBranch)
+	if !ok {
+		return HuffBranch{}, fmt.Errorf("unexpected node type after merge: %T", nodes[0])
+	}
+
+	return branch, nil
 }
 
 func mergeNodes(left, right HuffNode) HuffBranch {

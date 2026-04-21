@@ -5,6 +5,10 @@ import "testing"
 // Tree traversal and property helpers
 
 func countLeaves(node HuffNode) int {
+	if node == nil {
+		return 0
+	}
+
 	if node.isLeaf() {
 		return 1
 	}
@@ -13,6 +17,10 @@ func countLeaves(node HuffNode) int {
 }
 
 func sumLeafFreqs(node HuffNode) int {
+	if node == nil {
+		return 0
+	}
+
 	if node.isLeaf() {
 		return node.getFreq()
 	}
@@ -21,6 +29,10 @@ func sumLeafFreqs(node HuffNode) int {
 }
 
 func collectLeaves(node HuffNode) []rune {
+	if node == nil {
+		return nil
+	}
+
 	if node.isLeaf() {
 		return []rune{node.(HuffLeaf).char}
 	}
@@ -53,6 +65,12 @@ func verifyTreeInvariants(t *testing.T, tree HuffNode, expectedLeaves []HuffLeaf
 		if !charSet[leaf.char] {
 			t.Errorf("expected char %q not found in tree", leaf.char)
 		}
+	}
+}
+
+func expectedNoError(t *testing.T, err error) {
+	if err != nil {
+		t.Errorf("expected no error: got %s", err.Error())
 	}
 }
 
@@ -95,7 +113,8 @@ func TestBuildTree(t *testing.T) {
 			for i, leaf := range tt.leaves {
 				nodes[i] = leaf
 			}
-			tree := buildTree(nodes)
+			tree, err := buildTree(nodes)
+			expectedNoError(t, err)
 
 			// Always verify invariants
 			verifyTreeInvariants(t, tree, tt.leaves)
@@ -123,11 +142,12 @@ func TestGenCodesComplexTree(t *testing.T) {
 	for i, leaf := range leaves {
 		nodes[i] = leaf
 	}
-	tree := buildTree(nodes)
+	tree, err := buildTree(nodes)
+	expectedNoError(t, err)
 
 	initialPath := ""
 	pathMap := make(map[rune]string)
-	tree.(HuffBranch).genCodes(initialPath, &pathMap)
+	tree.genCodes(initialPath, &pathMap)
 
 	expected := map[rune]string{
 		'C': "1110",
