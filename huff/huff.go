@@ -38,17 +38,17 @@ func (n HuffBranch) getFreq() int {
 	return n.freq
 }
 
-func (n HuffBranch) genCodes(path string, pathMap *map[rune]string) {
+func (n HuffBranch) genCodes(path string, pathMap map[rune]string) {
 	visitNode := func(node HuffNode, code int) {
 		newPath := fmt.Sprintf("%s%d", path, code)
 		switch node := node.(type) {
 		case HuffBranch:
 			node.genCodes(newPath, pathMap)
 		case HuffLeaf:
-			if _, ok := (*pathMap)[node.char]; ok {
+			if _, ok := pathMap[node.char]; ok {
 				log.Fatalf("%c already exists in map", node.char)
 			}
-			(*pathMap)[node.char] = newPath
+			pathMap[node.char] = newPath
 		default:
 			log.Fatalf("unknown type for node: %T\n", node)
 		}

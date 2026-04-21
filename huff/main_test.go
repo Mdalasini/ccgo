@@ -147,7 +147,7 @@ func TestGenCodesComplexTree(t *testing.T) {
 
 	initialPath := ""
 	pathMap := make(map[rune]string)
-	tree.genCodes(initialPath, &pathMap)
+	tree.genCodes(initialPath, pathMap)
 
 	expected := map[rune]string{
 		'C': "1110",
