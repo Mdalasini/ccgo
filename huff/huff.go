@@ -26,8 +26,6 @@ func (l HuffLeaf) getFreq() int {
 
 type HuffBranch struct {
 	freq      int
-	leftCode  int
-	rightCode int
 	leftNode  HuffNode
 	rightNode HuffNode
 }
@@ -56,8 +54,8 @@ func (n HuffBranch) genCodes(path string, pathMap *map[rune]string) {
 		}
 	}
 
-	visitNode(n.leftNode, n.leftCode)
-	visitNode(n.rightNode, n.rightCode)
+	visitNode(n.leftNode, 0)
+	visitNode(n.rightNode, 1)
 }
 
 func sortNodesByFreq(nodes []HuffNode) {
@@ -111,8 +109,6 @@ func mergeNodes(left, right HuffNode) HuffBranch {
 		freq:      left.getFreq() + right.getFreq(),
 		leftNode:  left,
 		rightNode: right,
-		leftCode:  0,
-		rightCode: 1,
 	}
 }
 
