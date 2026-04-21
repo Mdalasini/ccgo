@@ -70,7 +70,7 @@ func verifyTreeInvariants(t *testing.T, tree HuffNode, expectedLeaves []HuffLeaf
 
 func expectedNoError(t *testing.T, err error) {
 	if err != nil {
-		t.Errorf("expected no error: got %s", err.Error())
+		t.Errorf("expected no error: got %v", err)
 	}
 }
 
