@@ -2,13 +2,6 @@ package main
 
 import "testing"
 
-func newHuffLeaf(t *testing.T, char rune, freq int) HuffLeaf {
-	return HuffLeaf{
-		char: char,
-		freq: freq,
-	}
-}
-
 // Tree traversal and property helpers
 
 func countLeaves(node HuffNode) int {
@@ -16,7 +9,7 @@ func countLeaves(node HuffNode) int {
 		return 1
 	}
 	branch := node.(HuffBranch)
-	return countLeaves(branch.left) + countLeaves(branch.right)
+	return countLeaves(branch.leftNode) + countLeaves(branch.rightNode)
 }
 
 func sumLeafFreqs(node HuffNode) int {
@@ -24,7 +17,7 @@ func sumLeafFreqs(node HuffNode) int {
 		return node.getFreq()
 	}
 	branch := node.(HuffBranch)
-	return sumLeafFreqs(branch.left) + sumLeafFreqs(branch.right)
+	return sumLeafFreqs(branch.leftNode) + sumLeafFreqs(branch.rightNode)
 }
 
 func collectLeaves(node HuffNode) []rune {
@@ -32,7 +25,7 @@ func collectLeaves(node HuffNode) []rune {
 		return []rune{node.(HuffLeaf).char}
 	}
 	branch := node.(HuffBranch)
-	return append(collectLeaves(branch.left), collectLeaves(branch.right)...)
+	return append(collectLeaves(branch.leftNode), collectLeaves(branch.rightNode)...)
 }
 
 func verifyTreeInvariants(t *testing.T, tree HuffNode, expectedLeaves []HuffLeaf) {
@@ -59,25 +52,6 @@ func verifyTreeInvariants(t *testing.T, tree HuffNode, expectedLeaves []HuffLeaf
 	for _, leaf := range expectedLeaves {
 		if !charSet[leaf.char] {
 			t.Errorf("expected char %q not found in tree", leaf.char)
-		}
-	}
-}
-
-// verifyExactStructure checks structure for simple trees with two leaves.
-func verifyExactStructure(t *testing.T, tree HuffNode, expectedRoot int, leftChar, rightChar rune) {
-	t.Helper()
-	if tree.getFreq() != expectedRoot {
-		t.Errorf("root freq: got %d, want %d", tree.getFreq(), expectedRoot)
-	}
-	branch := tree.(HuffBranch)
-	if leftChar != 0 {
-		if branch.left.(HuffLeaf).char != leftChar {
-			t.Errorf("left char: got %q, want %q", branch.left.(HuffLeaf).char, leftChar)
-		}
-	}
-	if rightChar != 0 {
-		if branch.right.(HuffLeaf).char != rightChar {
-			t.Errorf("right char: got %q, want %q", branch.right.(HuffLeaf).char, rightChar)
 		}
 	}
 }
@@ -131,5 +105,53 @@ func TestBuildTree(t *testing.T) {
 				t.Errorf("root freq: got %d, want %d", tree.getFreq(), tt.rootFreq)
 			}
 		})
+	}
+}
+
+func TestGenCodesComplexTree(t *testing.T) {
+	leaves := []HuffLeaf{
+		{char: 'C', freq: 32},
+		{char: 'D', freq: 42},
+		{char: 'E', freq: 120},
+		{char: 'K', freq: 7},
+		{char: 'L', freq: 42},
+		{char: 'M', freq: 24},
+		{char: 'U', freq: 37},
+		{char: 'Z', freq: 2},
+	}
+	nodes := make([]HuffNode, len(leaves))
+	for i, leaf := range leaves {
+		nodes[i] = leaf
+	}
+	tree := buildTree(nodes)
+
+	initialPath := ""
+	pathMap := make(map[rune]string)
+	tree.(HuffBranch).genCodes(initialPath, &pathMap)
+
+	expected := map[rune]string{
+		'C': "1110",
+		'D': "101",
+		'E': "0",
+		'K': "111101",
+		'L': "110",
+		'M': "11111",
+		'U': "100",
+		'Z': "111100",
+	}
+
+	for char, want := range expected {
+		got, ok := pathMap[char]
+		if !ok {
+			t.Errorf("char %q not found in pathMap", char)
+			continue
+		}
+		if got != want {
+			t.Errorf("code for %q: got %s, want %s", char, got, want)
+		}
+	}
+
+	if len(pathMap) != len(expected) {
+		t.Errorf("pathMap size: got %d, want %d", len(pathMap), len(expected))
 	}
 }

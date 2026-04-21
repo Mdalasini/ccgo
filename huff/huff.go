@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"sort"
 )
 
@@ -23,9 +25,11 @@ func (l HuffLeaf) getFreq() int {
 }
 
 type HuffBranch struct {
-	freq  int
-	left  HuffNode
-	right HuffNode
+	freq      int
+	leftCode  int
+	rightCode int
+	leftNode  HuffNode
+	rightNode HuffNode
 }
 
 func (n HuffBranch) isLeaf() bool {
@@ -34,6 +38,26 @@ func (n HuffBranch) isLeaf() bool {
 
 func (n HuffBranch) getFreq() int {
 	return n.freq
+}
+
+func (n HuffBranch) genCodes(path string, pathMap *map[rune]string) {
+	visitNode := func(node HuffNode, code int) {
+		newPath := fmt.Sprintf("%s%d", path, code)
+		switch node := node.(type) {
+		case HuffBranch:
+			node.genCodes(newPath, pathMap)
+		case HuffLeaf:
+			if _, ok := (*pathMap)[node.char]; ok {
+				log.Fatalf("%c already exists in map", node.char)
+			}
+			(*pathMap)[node.char] = newPath
+		default:
+			log.Fatalf("unknown type for node: %T\n", node)
+		}
+	}
+
+	visitNode(n.leftNode, n.leftCode)
+	visitNode(n.rightNode, n.rightCode)
 }
 
 func sortNodesByFreq(nodes []HuffNode) {
@@ -68,9 +92,11 @@ func buildTree(nodes []HuffNode) HuffNode {
 
 func mergeNodes(left, right HuffNode) HuffBranch {
 	return HuffBranch{
-		freq:  left.getFreq() + right.getFreq(),
-		left:  left,
-		right: right,
+		freq:      left.getFreq() + right.getFreq(),
+		leftNode:  left,
+		rightNode: right,
+		leftCode:  0,
+		rightCode: 1,
 	}
 }
 
