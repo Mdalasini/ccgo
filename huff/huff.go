@@ -2,22 +2,16 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"sort"
 )
 
 type HuffNode interface {
-	isLeaf() bool
 	getFreq() int
 }
 
 type HuffLeaf struct {
 	char rune
 	freq int
-}
-
-func (l HuffLeaf) isLeaf() bool {
-	return true
 }
 
 func (l HuffLeaf) getFreq() int {
@@ -28,10 +22,6 @@ type HuffBranch struct {
 	freq      int
 	leftNode  HuffNode
 	rightNode HuffNode
-}
-
-func (n HuffBranch) isLeaf() bool {
-	return false
 }
 
 func (n HuffBranch) getFreq() int {
@@ -45,12 +35,7 @@ func (n HuffBranch) genCodes(path string, pathMap map[rune]string) {
 		case HuffBranch:
 			node.genCodes(newPath, pathMap)
 		case HuffLeaf:
-			if _, ok := pathMap[node.char]; ok {
-				log.Fatalf("%c already exists in map", node.char)
-			}
 			pathMap[node.char] = newPath
-		default:
-			log.Fatalf("unknown type for node: %T\n", node)
 		}
 	}
 

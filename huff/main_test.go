@@ -9,7 +9,7 @@ func countLeaves(node HuffNode) int {
 		return 0
 	}
 
-	if node.isLeaf() {
+	if _, ok := node.(HuffLeaf); ok {
 		return 1
 	}
 	branch := node.(HuffBranch)
@@ -21,7 +21,7 @@ func sumLeafFreqs(node HuffNode) int {
 		return 0
 	}
 
-	if node.isLeaf() {
+	if _, ok := node.(HuffLeaf); ok {
 		return node.getFreq()
 	}
 	branch := node.(HuffBranch)
@@ -33,7 +33,7 @@ func collectLeaves(node HuffNode) []rune {
 		return nil
 	}
 
-	if node.isLeaf() {
+	if _, ok := node.(HuffLeaf); ok {
 		return []rune{node.(HuffLeaf).char}
 	}
 	branch := node.(HuffBranch)
