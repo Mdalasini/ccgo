@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"unicode/utf8"
 )
 
 func countCharFrequencies(file *os.File) map[rune]int {
@@ -12,8 +13,8 @@ func countCharFrequencies(file *os.File) map[rune]int {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanRunes)
 	for scanner.Scan() {
-		char := scanner.Text()
-		frequencies[rune(char[0])]++
+		r, _ := utf8.DecodeRuneInString(scanner.Text())
+		frequencies[r]++
 	}
 
 	return frequencies
