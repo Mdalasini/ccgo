@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"unicode/utf8"
@@ -25,10 +26,5 @@ func countCharFrequencies(file *os.File) map[rune]int {
 }
 
 func main() {
-	filepath := "tests/test.txt"
-	file, err := os.Open(filepath)
-	if err != nil {
-		log.Fatalf("unable to open %v: %v", filepath, err)
-	}
-	defer file.Close()
+	fmt.Println("Hello Huff!")
 }
