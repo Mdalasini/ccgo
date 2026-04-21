@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"log"
 	"sort"
+	"unicode/utf8"
 )
 
 type HuffNode interface {
 	getFreq() int
+	genCodes(path []byte, pathMap map[rune][]byte)
 }
 
 type HuffLeaf struct {
@@ -18,29 +23,29 @@ func (l HuffLeaf) getFreq() int {
 	return l.freq
 }
 
+func (l HuffLeaf) genCodes(path []byte, pathMap map[rune][]byte) {
+	pathCopy := make([]byte, len(path))
+	copy(pathCopy, path) // avoid corruption by siblings
+	pathMap[l.char] = pathCopy
+}
+
 type HuffBranch struct {
 	freq      int
 	leftNode  HuffNode
 	rightNode HuffNode
 }
 
-func (n HuffBranch) getFreq() int {
-	return n.freq
+func (b HuffBranch) getFreq() int {
+	return b.freq
 }
 
-func (n HuffBranch) genCodes(path string, pathMap map[rune]string) {
-	visitNode := func(node HuffNode, code int) {
-		newPath := fmt.Sprintf("%s%d", path, code)
-		switch node := node.(type) {
-		case HuffBranch:
-			node.genCodes(newPath, pathMap)
-		case HuffLeaf:
-			pathMap[node.char] = newPath
-		}
+func (b HuffBranch) genCodes(path []byte, pathMap map[rune][]byte) {
+	if b.leftNode != nil {
+		b.leftNode.genCodes(append(path, '0'), pathMap)
 	}
-
-	visitNode(n.leftNode, 0)
-	visitNode(n.rightNode, 1)
+	if b.rightNode != nil {
+		b.rightNode.genCodes(append(path, '1'), pathMap)
+	}
 }
 
 func sortNodesByFreq(nodes []HuffNode) {
@@ -95,6 +100,23 @@ func mergeNodes(left, right HuffNode) HuffBranch {
 		leftNode:  left,
 		rightNode: right,
 	}
+}
+
+func countCharFrequencies(r io.Reader) map[rune]int {
+	frequencies := make(map[rune]int)
+
+	scanner := bufio.NewScanner(r)
+	scanner.Split(bufio.ScanRunes)
+	for scanner.Scan() {
+		r, _ := utf8.DecodeRuneInString(scanner.Text())
+		frequencies[r]++
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("error reading file: %v", err)
+	}
+
+	return frequencies
 }
 
 func nodesFromFreq(frequencies map[rune]int) []HuffNode {

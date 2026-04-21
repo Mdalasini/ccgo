@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // Tree traversal and property helpers
 
@@ -145,19 +148,19 @@ func TestGenCodesComplexTree(t *testing.T) {
 	tree, err := buildTree(nodes)
 	expectedNoError(t, err)
 
-	initialPath := ""
-	pathMap := make(map[rune]string)
+	initialPath := []byte{}
+	pathMap := make(map[rune][]byte)
 	tree.genCodes(initialPath, pathMap)
 
-	expected := map[rune]string{
-		'C': "1110",
-		'D': "101",
-		'E': "0",
-		'K': "111101",
-		'L': "110",
-		'M': "11111",
-		'U': "100",
-		'Z': "111100",
+	expected := map[rune][]byte{
+		'C': []byte("1110"),
+		'D': []byte("101"),
+		'E': []byte("0"),
+		'K': []byte("111101"),
+		'L': []byte("110"),
+		'M': []byte("11111"),
+		'U': []byte("100"),
+		'Z': []byte("111100"),
 	}
 
 	for char, want := range expected {
@@ -166,8 +169,8 @@ func TestGenCodesComplexTree(t *testing.T) {
 			t.Errorf("char %q not found in pathMap", char)
 			continue
 		}
-		if got != want {
-			t.Errorf("code for %q: got %s, want %s", char, got, want)
+		if !slices.Equal(got, want) {
+			t.Errorf("code for %q: got %q, want %q", char, got, want)
 		}
 	}
 
