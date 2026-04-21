@@ -79,6 +79,9 @@ func insertSorted(nodes []HuffNode, node HuffNode) []HuffNode {
 }
 
 func buildTree(nodes []HuffNode) HuffNode {
+	if len(nodes) == 0 {
+		return nil
+	}
 	sortNodesByFreq(nodes)
 	for len(nodes) > 1 {
 		left := nodes[0]
