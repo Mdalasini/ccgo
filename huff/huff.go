@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"fmt"
 )
 
 // HuffNode represents a node in a Huffman tree.
@@ -76,26 +75,30 @@ func BuildHuffTree(freq map[rune]int) *HuffNode {
 	return heap.Pop(h).(*HuffNode)
 }
 
-func (n *HuffNode) Traverse(path string) (rune, error) {
-	cur := n
-	for i, bit := range path {
-		if cur.isLeaf() {
-			return 0, fmt.Errorf("path too long: landed on leaf at offset %d", i)
+// BuildCodeTable walks the Huffman tree and returns a map from rune to its
+// variable-length prefix code (as a string of '0'/'1').
+func BuildCodeTable(root *HuffNode) map[rune]string {
+	codes := make(map[rune]string)
+	if root == nil {
+		return codes
+	}
+	if root.isLeaf() {
+		codes[root.Char] = "0"
+		return codes
+	}
+	var walk func(n *HuffNode, path string)
+	walk = func(n *HuffNode, path string) {
+		if n.isLeaf() {
+			codes[n.Char] = path
+			return
 		}
-		switch bit {
-		case '0':
-			cur = cur.Left
-		case '1':
-			cur = cur.Right
-		default:
-			return 0, fmt.Errorf("invalid path character %q at offset %d", bit, i)
+		if n.Left != nil {
+			walk(n.Left, path+"0")
 		}
-		if cur == nil {
-			return 0, fmt.Errorf("path leads to nil node at offset %d", i)
+		if n.Right != nil {
+			walk(n.Right, path+"1")
 		}
 	}
-	if !cur.isLeaf() {
-		return 0, fmt.Errorf("path ended at internal node")
-	}
-	return cur.Char, nil
+	walk(root, "")
+	return codes
 }

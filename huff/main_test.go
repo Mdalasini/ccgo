@@ -26,7 +26,7 @@ func TestFreqMapLesMiserables(t *testing.T) {
 	}
 }
 
-func TestBuildHuffTree(t *testing.T) {
+func TestBuildCodeTable(t *testing.T) {
 	freq := map[rune]int{
 		'C': 32,
 		'D': 42,
@@ -49,18 +49,19 @@ func TestBuildHuffTree(t *testing.T) {
 	}
 
 	root := BuildHuffTree(freq)
-	if root == nil {
-		t.Fatal("BuildHuffTree returned nil")
-	}
+	got := BuildCodeTable(root)
 
-	for r, path := range want {
-		got, err := root.Traverse(path)
-		if err != nil {
-			t.Errorf("Traverse(%q) for %q: %v", path, r, err)
-			continue
+	for r, wantCode := range want {
+		if got[r] != wantCode {
+			t.Errorf("code for %q: got %q, want %q", r, got[r], wantCode)
 		}
-		if got != r {
-			t.Errorf("Traverse(%q) = %q, want %q", path, got, r)
-		}
+	}
+}
+
+func TestBuildCodeTableSingle(t *testing.T) {
+	root := BuildHuffTree(map[rune]int{'x': 10})
+	codes := BuildCodeTable(root)
+	if codes['x'] != "0" {
+		t.Errorf("single char code: got %q, want %q", codes['x'], "0")
 	}
 }
