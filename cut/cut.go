@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-// cut reads tab-separated lines from r and writes the specified field (1-indexed) from each line to w.
-func cut(r io.Reader, w io.Writer, field int) error {
+// cut reads delimiter-separated lines from r and writes the specified field (1-indexed) from each line to w.
+func cut(r io.Reader, w io.Writer, field int, delim string) error {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
 			continue
 		}
-		parts := strings.Split(line, "\t")
+		parts := strings.Split(line, delim)
 		if field <= len(parts) {
 			fmt.Fprintln(w, parts[field-1])
 		}
