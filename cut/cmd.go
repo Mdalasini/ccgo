@@ -8,7 +8,7 @@ import (
 
 type cli struct {
 	File      string `arg:"" help:"Path to the TSV file."`
-	Field     int    `short:"f" required:"" help:"Field to extract (1-indexed)."`
+	Fields    []int  `short:"f" required:"" help:"Field to extract (1-indexed)."`
 	Delimiter string `short:"d" default:"\t" help:"Delimiter character (default: tab)."`
 }
 
@@ -18,7 +18,7 @@ func (c *cli) Run() error {
 		return err
 	}
 	defer f.Close()
-	return cut(f, os.Stdout, c.Field, c.Delimiter)
+	return cut(f, os.Stdout, c.Fields, c.Delimiter)
 }
 
 func parse() {

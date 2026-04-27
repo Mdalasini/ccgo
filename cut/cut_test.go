@@ -15,7 +15,7 @@ func TestCutField2(t *testing.T) {
 	defer f.Close()
 
 	var buf bytes.Buffer
-	if err := cut(f, &buf, 2, "\t"); err != nil {
+	if err := cut(f, &buf, []int{2}, "\t"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -27,6 +27,31 @@ func TestCutField2(t *testing.T) {
 	}
 }
 
+func TestCutFields1And2(t *testing.T) {
+	f, err := os.Open("tests/sample.tsv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	var buf bytes.Buffer
+	if err := cut(f, &buf, []int{1, 2}, "\t"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Expected output matches: cut -f1,2 tests/sample.tsv
+	want := "f0\tf1\n" +
+		"0\t1\n" +
+		"5\t6\n" +
+		"10\t11\n" +
+		"15\t16\n" +
+		"20\t21\n"
+	got := buf.String()
+	if got != want {
+		t.Errorf("cut -f1,2 output mismatch:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
 func TestCutField9OutOfRange(t *testing.T) {
 	f, err := os.Open("tests/sample.tsv")
 	if err != nil {
@@ -35,7 +60,7 @@ func TestCutField9OutOfRange(t *testing.T) {
 	defer f.Close()
 
 	var buf bytes.Buffer
-	if err := cut(f, &buf, 9, "\t"); err != nil {
+	if err := cut(f, &buf, []int{9}, "\t"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -53,7 +78,7 @@ func TestCutCommaDelim(t *testing.T) {
 	defer f.Close()
 
 	var buf bytes.Buffer
-	if err := cut(f, &buf, 1, ","); err != nil {
+	if err := cut(f, &buf, []int{1}, ","); err != nil {
 		t.Fatal(err)
 	}
 
